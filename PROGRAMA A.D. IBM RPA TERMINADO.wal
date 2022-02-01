@@ -1,4 +1,4 @@
-�1defVar --name dnis --type List --innertype String
+defVar --name dnis --type List --innertype String
 defVar --name dni_indiv --type String
 defVar --name dni_texto --type String
 defVar --name dni_indicedni --type Numeric
@@ -33,11 +33,11 @@ foreach --collection "${dnis}" --variable "${dni_indiv}"
 	recognizeText --source "${dni_indiv}" --language "es-ES" --method "Abbyy" dni_texto=value
 	parseText --text "${dni_texto}" --useRegex  --regexPattern "I<PER" --regexOptions "0" --startindex 1 dni_indicedni=value
 	parseText --text "${dni_texto}" --useRegex  --regexPattern "<<<<<<<<<<<<<<<" --regexOptions "0" --startindex 1 dni_indicenacimi=value
-	parseText --text "${dni_texto}" --useRegex  --regexPattern Emisión --regexOptions "0" --startindex 1 dni_indicemision=value
+	parseText --text "${dni_texto}" --useRegex  --regexPattern EmisiÃ³n --regexOptions "0" --startindex 1 dni_indicemision=value
 	evaluate --expression "${dni_indicedni}+5" dni_obtnerdni=value
 	evaluate --expression "${dni_indicemision}+7" dni_obtenerdimension=value
 	evaluate --expression "${dni_indicenacimi}+15" dni_obtenernacimiYEAR=value
-	evaluate --expression "${dni_indicenacimi}+18" --comment "Se suman 2 mas para hallar el mes 15, hallamos el año" obtenernacimimonth=value
+	evaluate --expression "${dni_indicenacimi}+18" --comment "Se suman 2 mas para hallar el mes 15, hallamos el aÃ±o" obtenernacimimonth=value
 	evaluate --expression "${dni_indicenacimi}+20" --comment "Se suman 2 mas para hallar el dia 19, hallamos el dia" dni_nacimitDAY=value
 	getSubString --text "${dni_texto}" --start ${dni_obtnerdni} --length 8 dni_dnitxt=value
 	getSubString --text "${dni_texto}" --start ${dni_obtenerdimension} --length 13 dni_emisiontxt=value
@@ -68,9 +68,9 @@ foreach --collection "${dnis}" --variable "${dni_indiv}"
 	webClick --selector "CssSelector" --css "#btnEntrar"
 	delay --timeout "00:00:06"
 	webGetHtmlSource htmlDNIvacuna=value
-	countTextOccurrences --text "${htmlDNIvacuna}" --query "1ª dosis" --startindex 1 vecesdosis1=value
-	countTextOccurrences --text "${htmlDNIvacuna}" --query "2ª dosis" --startindex 1 vecesdosis2=value
-	countTextOccurrences --text "${htmlDNIvacuna}" --query "3ª dosis" --startindex 1 vecesdosis3=value
+	countTextOccurrences --text "${htmlDNIvacuna}" --query "1Âª dosis" --startindex 1 vecesdosis1=value
+	countTextOccurrences --text "${htmlDNIvacuna}" --query "2Âª dosis" --startindex 1 vecesdosis2=value
+	countTextOccurrences --text "${htmlDNIvacuna}" --query "3Âª dosis" --startindex 1 vecesdosis3=value
 	logMessage --message "Dosis 1: ${vecesdosis1}" --type "Info"
 	logMessage --message "Dosis 2: ${vecesdosis2}" --type "Info"
 	logMessage --message "Dosis 3: ${vecesdosis3}" --type "Info"
@@ -97,4 +97,4 @@ foreach --collection "${dnis}" --variable "${dni_indiv}"
 	endIf
 	webClose --name webserver
 	webClose --name webvacuna
-endFor*21.0.1.0
+endFor
