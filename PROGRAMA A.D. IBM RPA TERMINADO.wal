@@ -1,0 +1,100 @@
+�1defVar --name dnis --type List --innertype String
+defVar --name dni_indiv --type String
+defVar --name dni_texto --type String
+defVar --name dni_indicedni --type Numeric
+defVar --name dni_dnitxt --type String
+defVar --name dni_obtnerdni --type Numeric
+defVar --name dni_indicemision --type Numeric
+defVar --name dni_emisiontxt --type String
+defVar --name dni_obtenerdimension --type Numeric
+defVar --name dni_indicenacimi --type Numeric
+defVar --name dni_obtenernacimiYEAR --type Numeric
+defVar --name dni_nacimietxtYEAR --type String
+defVar --name obtenernacimimonth --type Numeric
+defVar --name dni_nacimietxtMONTH --type String
+defVar --name dni_nacimitDAY --type Numeric
+defVar --name dni_nacimitxtDAY --type String
+defVar --name dia_mes_unidos --type String
+defVar --name DDMMAAAAunido --type String
+defVar --name vecesdosis1 --type Numeric
+defVar --name vecesdosis2 --type Numeric
+defVar --name vecesdosis3 --type Numeric
+defVar --name YearFormatoAAAA --type String
+defVar --name htmlDNIvacuna --type String
+defVar --name Yearnumber --type Numeric
+defVar --name AAAA --type String
+defVar --name extraervariableOBJ --type String
+defVar --name XXXXX --type List --innertype String
+defVar --name YEAR_NUMERIC --type Numeric
+defVar --name ABCVALORES --type List --innertype String
+defVar --name CANTIDAD_FOTOS_FTP --type Numeric
+getFiles --path "C:\\Users\\HP\\Documents\\FTP" dnis=value
+foreach --collection "${dnis}" --variable "${dni_indiv}"
+	recognizeText --source "${dni_indiv}" --language "es-ES" --method "Abbyy" dni_texto=value
+	parseText --text "${dni_texto}" --useRegex  --regexPattern "I<PER" --regexOptions "0" --startindex 1 dni_indicedni=value
+	parseText --text "${dni_texto}" --useRegex  --regexPattern "<<<<<<<<<<<<<<<" --regexOptions "0" --startindex 1 dni_indicenacimi=value
+	parseText --text "${dni_texto}" --useRegex  --regexPattern Emisión --regexOptions "0" --startindex 1 dni_indicemision=value
+	evaluate --expression "${dni_indicedni}+5" dni_obtnerdni=value
+	evaluate --expression "${dni_indicemision}+7" dni_obtenerdimension=value
+	evaluate --expression "${dni_indicenacimi}+15" dni_obtenernacimiYEAR=value
+	evaluate --expression "${dni_indicenacimi}+18" --comment "Se suman 2 mas para hallar el mes 15, hallamos el año" obtenernacimimonth=value
+	evaluate --expression "${dni_indicenacimi}+20" --comment "Se suman 2 mas para hallar el dia 19, hallamos el dia" dni_nacimitDAY=value
+	getSubString --text "${dni_texto}" --start ${dni_obtnerdni} --length 8 dni_dnitxt=value
+	getSubString --text "${dni_texto}" --start ${dni_obtenerdimension} --length 13 dni_emisiontxt=value
+	getSubString --text "${dni_texto}" --start ${dni_obtenernacimiYEAR} --length 3 dni_nacimietxtYEAR=value
+	getSubString --text "${dni_texto}" --start ${obtenernacimimonth} --length 2 dni_nacimietxtMONTH=value
+	getSubString --text "${dni_texto}" --start ${dni_nacimitDAY} --length 2 dni_nacimitxtDAY=value
+	extractNumber --culture "en-US" --text "${dni_nacimietxtYEAR}" YEAR_NUMERIC=first
+	logMessage --message "${YEAR_NUMERIC}" --type "Info"
+	if --left "${YEAR_NUMERIC}" --operator "Greater_Than_Equal_To" --right 22
+		concatTexts --text 19 --value "${dni_nacimietxtYEAR}" YearFormatoAAAA=value
+	endIf
+	if --left "${YEAR_NUMERIC}" --operator "Less_Than" --right 21
+		concatTexts --text 20 --value "${dni_nacimietxtYEAR}" YearFormatoAAAA=value
+	endIf
+	logMessage --message "${dni_dnitxt}" --type "Info"
+	concatTexts --text "${dni_nacimitxtDAY}" --value "${dni_nacimietxtMONTH}" dia_mes_unidos=value
+	concatTexts --text "${dia_mes_unidos}" --value "${YearFormatoAAAA}" DDMMAAAAunido=value
+	webStart --name webvacuna --type "Chrome"
+	webNavigate --url "https://carnetvacunacion.minsa.gob.pe/"
+	webSet --value "${dni_dnitxt}" --selector "CssSelector" --css "#jaFrmRegVacTxtNumDoc" --simulatehuman 
+	webSet --value "${DDMMAAAAunido}" --selector "CssSelector" --css "#txtFechaNacimiento" --simulatehuman 
+	webSet --value "${dni_emisiontxt}" --selector "CssSelector" --css "#txtFechaEmision" --simulatehuman 
+	webClick --selector "CssSelector" --css "#chkPolitica"
+	delay --timeout "00:00:03"
+	webClick --selector "CssSelector" --css "#btnCerrar"
+	webClick --selector "CssSelector" --css "#recaptcha-anchor > div.recaptcha-checkbox-checkmark"
+	delay --timeout "00:00:05"
+	webClick --selector "CssSelector" --css "#btnEntrar"
+	delay --timeout "00:00:06"
+	webGetHtmlSource htmlDNIvacuna=value
+	countTextOccurrences --text "${htmlDNIvacuna}" --query "1ª dosis" --startindex 1 vecesdosis1=value
+	countTextOccurrences --text "${htmlDNIvacuna}" --query "2ª dosis" --startindex 1 vecesdosis2=value
+	countTextOccurrences --text "${htmlDNIvacuna}" --query "3ª dosis" --startindex 1 vecesdosis3=value
+	logMessage --message "Dosis 1: ${vecesdosis1}" --type "Info"
+	logMessage --message "Dosis 2: ${vecesdosis2}" --type "Info"
+	logMessage --message "Dosis 3: ${vecesdosis3}" --type "Info"
+	webStart --name webserver --type "Chrome"
+	webNavigate --url "http://192.168.0.143"
+	if --left "${vecesdosis1}" --operator "Equal_To" --right 1
+		if --left "${vecesdosis2}" --operator "Equal_To" --right 1
+			if --left "${vecesdosis3}" --operator "Equal_To" --right 1
+				webClick --selector "CssSelector" --css "body > center > p:nth-child(4) > a > button" --simulatehuman  --comment "Tiene 3 dosis"
+				delay --timeout "00:00:04"
+				webClick --selector "CssSelector" --css "body > center > p:nth-child(5) > a > button" --simulatehuman  --comment "Proceso terminar"
+			else
+				webClick --selector "CssSelector" --css "body > center > p:nth-child(3) > a > button" --simulatehuman  --comment "Tiene 2 dosis"
+				delay --timeout "00:00:04"
+				webClick --selector "CssSelector" --css "body > center > p:nth-child(5) > a > button" --simulatehuman  --comment "Proceso terminar"
+			endIf
+		else
+			webClick --selector "CssSelector" --css "body > center > p:nth-child(2) > a > button" --simulatehuman  --comment "Tiene 1 dosis"
+			delay --timeout "00:00:04"
+			webClick --selector "CssSelector" --css "body > center > p:nth-child(5) > a > button" --simulatehuman  --comment "Proceso terminar"
+		endIf
+	else
+		webClick --selector "CssSelector" --css "body > center > p:nth-child(5) > a > button" --simulatehuman  --comment "Proceso terminar"
+	endIf
+	webClose --name webserver
+	webClose --name webvacuna
+endFor*21.0.1.0
