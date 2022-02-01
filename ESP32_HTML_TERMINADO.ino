@@ -25,7 +25,7 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", (-3600 * 3), 60000);
 
 WiFiServer server(80);
 
-//---------------------VARIABLES GLOBALES-------------------------
+///---------------------VARIABLES GLOBALES-------------------------
 
 String header; // Variable para guardar el HTTP request
 
